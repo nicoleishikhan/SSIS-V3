@@ -37,10 +37,14 @@ class College:
         mysql.connection.commit()
 
     @classmethod
-    def is_college_unique(cls, college_name, college_code):
-        SELECT_UNIQUE_SQL = "SELECT id FROM college WHERE college_name = %s AND college_code = %s"
+    def is_college_unique(cls, college_name, college_code, current_college_id=None):
+        SELECT_UNIQUE_SQL = """
+            SELECT id FROM college
+            WHERE (college_name = %s OR college_code = %s)
+            AND (id != %s OR %s IS NULL)
+        """
         cur = mysql.connection.cursor()
-        cur.execute(SELECT_UNIQUE_SQL, (college_name, college_code))
+        cur.execute(SELECT_UNIQUE_SQL, (college_name, college_code, current_college_id, current_college_id))
         result = cur.fetchone()
         return result is None
     

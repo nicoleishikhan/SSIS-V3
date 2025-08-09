@@ -14,3 +14,4 @@ class Config:
     CLOUDY_KEY = getenv('CLOUDY_KEY')
     CLOUDY_SECRET = getenv('CLOUDY_SECRET')
     CLOUDY_URL = getenv('CLOUDY_URL')
+    CLOUDY_FOLDER = getenv('CLOUDY_FOLDER')

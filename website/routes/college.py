@@ -32,23 +32,24 @@ def add_college():
 @college.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit_college(id):
     if request.method == 'POST':
-        college_name=request.form.get('name')
-        college_code=request.form.get('code')
+        # Fix these to match your form input names
+        college_name = request.form.get('college_name')
+        college_code = request.form.get('college_code')
         
         if not college_name or not college_code:
             flash('Name and code cannot be empty.', category='error')
         else:
-            #rubber ducky
-            if not College.is_college_unique(college_name, college_code):
-                flash('Course with the same name and code already exists for this college.', category='error')
+            # Pass current college id to exclude from uniqueness check
+            if not College.is_college_unique(college_name, college_code, current_college_id=id):
+                flash('College with the same name or code already exists.', category='error')
             else:
                 try:
-                    college_query = College(id=id,college_name=college_name, college_code=college_code)
+                    college_query = College(id=id, college_name=college_name, college_code=college_code)
                     college_query.update()
                     flash('College updated.', category='success')
                     return redirect(url_for('college.college_home'))
                 except Exception as e:
-                    flash('College with the same name or code already exists.', category='error')
+                    flash('Error updating college.', category='error')
 
     original_college = None
     colleges = College.get_colleges()
