@@ -3,55 +3,98 @@ from website import mysql
 class College:
     __tablename__ = 'college'
 
-    def __init__(self, id=None , college_name=None, college_code=None):
+    def __init__(self, id=None, college_name=None, college_code=None):
         self.id = id
         self.college_name = college_name
         self.college_code = college_code
 
+    # ---------- CRUD METHODS ----------
     def insert(self):
-        INSERT_SQL = f"INSERT INTO {self.__tablename__} (college_name, college_code) VALUES (%s, %s)"
         cur = mysql.connection.cursor()
-        cur.execute(INSERT_SQL, (self.college_name, self.college_code))
+        cur.execute(
+            "INSERT INTO college (college_name, college_code) VALUES (%s, %s)",
+            (self.college_name, self.college_code)
+        )
         mysql.connection.commit()
-
-#rubber ducky
+        cur.close()
 
     def update(self):
-        UPDATE_SQL = f"UPDATE {self.__tablename__} SET college_name = %s, college_code = %s WHERE id = %s"
         cur = mysql.connection.cursor()
-        cur.execute(UPDATE_SQL, (self.college_name, self.college_code, self.id))
+        cur.execute(
+            "UPDATE college SET college_name=%s, college_code=%s WHERE id=%s",
+            (self.college_name, self.college_code, self.id)
+        )
         mysql.connection.commit()
-
-    @classmethod
-    def get_colleges(cls):
-        SELECT_SQL = f"SELECT * FROM {cls.__tablename__}"
-        cur = mysql.new_cursor(dictionary=True)
-        cur.execute(SELECT_SQL)
-        colleges = cur.fetchall()
-        return colleges
+        cur.close()
 
     def delete(self):
-        DELETE_SQL = f"DELETE FROM {self.__tablename__} WHERE id = %s"
         cur = mysql.connection.cursor()
-        cur.execute(DELETE_SQL, (self.id,))
-        mysql.connection.commit()
+        try:
+            # Unlink college from students
+            cur.execute("UPDATE student SET college_id = NULL WHERE college_id = %s", (self.id,))
+            # Unlink college from courses
+            cur.execute("UPDATE course SET college_id = NULL WHERE college_id = %s", (self.id,))
+            # Delete the college itself
+            cur.execute("DELETE FROM college WHERE id = %s", (self.id,))
+            mysql.connection.commit()
+        except Exception:
+            mysql.connection.rollback()
+            raise
+        finally:
+            cur.close()
+
+    # ---------- RETRIEVE METHODS ----------
+    @classmethod
+    def get_colleges(cls):
+        cur = mysql.connection.cursor(dictionary=True)
+        cur.execute(f"SELECT * FROM {cls.__tablename__} ORDER BY college_name ASC")
+        rows = cur.fetchall()
+        cur.close()
+        return rows
 
     @classmethod
-    def is_college_unique(cls, college_name, college_code, current_college_id=None):
-        SELECT_UNIQUE_SQL = """
-            SELECT id FROM college
-            WHERE (college_name = %s OR college_code = %s)
-            AND (id != %s OR %s IS NULL)
-        """
-        cur = mysql.connection.cursor()
-        cur.execute(SELECT_UNIQUE_SQL, (college_name, college_code, current_college_id, current_college_id))
-        result = cur.fetchone()
-        return result is None
-    
+    def get_colleges_paginated(cls, offset, limit):
+        cur = mysql.connection.cursor(dictionary=True)
+        cur.execute(f"""
+            SELECT * FROM {cls.__tablename__}
+            ORDER BY id DESC
+            LIMIT %s OFFSET %s
+        """, (limit, offset))
+        rows = cur.fetchall()
+        cur.close()
+        return rows
+
     @classmethod
     def search_colleges(cls, query):
-        SELECT_SQL = f"SELECT * FROM {cls.__tablename__} WHERE college_name LIKE %s OR college_code LIKE %s"
         cur = mysql.connection.cursor(dictionary=True)
-        cur.execute(SELECT_SQL, (f'%{query}%', f'%{query}%'))
-        colleges = cur.fetchall()
-        return colleges
+        search_term = f"%{query}%"
+        cur.execute(f"""
+            SELECT * FROM {cls.__tablename__}
+            WHERE college_name LIKE %s OR college_code LIKE %s
+            ORDER BY college_name ASC
+        """, (search_term, search_term))
+        rows = cur.fetchall()
+        cur.close()
+        return rows
+
+    # ---------- COUNT METHODS ----------
+    @classmethod
+    def count_colleges(cls):
+        cur = mysql.connection.cursor()
+        cur.execute(f"SELECT COUNT(*) FROM {cls.__tablename__}")
+        count = cur.fetchone()[0]
+        cur.close()
+        return count
+
+    # ---------- UNIQUENESS CHECK ----------
+    @classmethod
+    def is_college_unique(cls, college_name, college_code, current_college_id=None):
+        cur = mysql.connection.cursor()
+        cur.execute(f"""
+            SELECT id FROM {cls.__tablename__}
+            WHERE (college_name = %s OR college_code = %s)
+            AND (id != %s OR %s IS NULL)
+        """, (college_name, college_code, current_college_id, current_college_id))
+        result = cur.fetchone()
+        cur.close()
+        return result is None

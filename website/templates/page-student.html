@@ -1,110 +1,86 @@
-{% extends "base.html" %} {% block title %}Students - SSIS{% endblock %} {%
-block content %}
+{% extends "base.html" %}
+{% block title %}Students - SSIS{% endblock %}
+{% block content %}
 <h1 align="center">Students</h1>
+
 <div style="display: flex; justify-content: space-between">
-	<div>
-		<a href="/student/add"><button>Add Student</button></a>
-	</div>
-	<div style="display: flex; align-items: center; margin-bottom: 20px">
-		<form
-			style="color: #ecf0f1; display: flex; gap: 1em"
-			action="/student/search"
-			method="get"
-		>
-			<input
-				style="color: #ecf0f1"
-				type="text"
-				name="query"
-				placeholder="Search"
-				class="form-control"
-			/>
-			<button type="submit">Search</button>
-			<a href="/student"><button>Clear</button></a>
-		</form>
-	</div>
+    <div><a href="/student/add"><button>Add Student</button></a></div>
+    <div style="display: flex; align-items: center; margin-bottom: 20px">
+        <form style="color: #ecf0f1; display: flex; gap: 1em" action="{{ url_for('student.search_student') }}" method="get">
+            <input style="color: #ecf0f1" type="text" name="query" placeholder="Search" class="form-control" />
+            <button type="submit">Search</button>
+            <a href="{{ url_for('student.student_home') }}"><button type="button">Clear</button></a>
+        </form>
+    </div>
 </div>
+
 <div class="table-container">
-	<table class="content-table">
-		<thead>
-			<tr>
-				<th></th>
-				<th>
-					<div
-						style="background-color: #0088a9; color: #ecf0f1; font-weight: bold"
-					>
-						Name
-					</div>
-					<div
-						style="
-							background-color: #0088a9;
-							color: #ecf0f1;
-							font-weight: bold;
-							font-size: 85%;
-						"
-					>
-						Student ID
-					</div>
-				</th>
-				<th>Gender</th>
-				<th>Year</th>
-				<th>Course</th>
-				<th>College</th>
-				<th class="th-action"></th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for student in students %}
-			<tr>
-				<td>
-					<div class="photo-container">
-						{% if student.cloudinary_url %}
-						<img
-							src="{{ student.cloudinary_url }}"
-							alt="Student Photo"
-						/>
-						{% else %}
-						<img
-							src="../static/src/default_photo.jpg"
-							alt="Student Photo"
-							class="student-photo"
-						/>
-						{% endif %}
-					</div>
-				</td>
-				<td>
-					<div class="bold-text">
-						{{ student.first_name }} {{student.last_name}}
-					</div>
-					<div class="small-text">{{ student.student_id }}</div>
-				</td>
-				<td>{{ student.gender }}</td>
-				<td>{{ student.year }}</td>
-				<td>{{ student.course_code }}</td>
-				<td>{{ student.college_code }}</td>
-				<td>
-					<span class="action-btn">
-						<a
-							class="action-link-edit"
-							href="edit/{{student.id}}"
-							>Edit</a
-						>
-						<form
-							method="post"
-							action="/student/delete/{{ student.id }}"
-						>
-							<button
-								type="button"
-								class="action-link-delete"
-								onclick="confirmDeleteStudent('{{ student.id }}')"
-							>
-								Delete
-							</button>
-						</form>
-					</span>
-				</td>
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
+<table class="content-table">
+    <thead>
+        <tr>
+            <th></th>
+            <th>
+                <div style="background-color: #0088a9; color: #ecf0f1; font-weight: bold">Name</div>
+                <div style="background-color: #0088a9; color: #ecf0f1; font-weight: bold; font-size: 85%">Student ID</div>
+            </th>
+            <th>Gender</th>
+            <th>Year</th>
+            <th>Course and College</th>
+            <th class="th-action"></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for student in students %}
+        <tr>
+            <td>
+                <div class="photo-container">
+                    {% if student.cloudinary_url %}
+                        <img src="{{ student.cloudinary_url }}" alt="Student Photo" />
+                    {% else %}
+                        <img src="../static/src/default_photo.jpg" alt="Student Photo" class="student-photo" />
+                    {% endif %}
+                </div>
+            </td>
+            <td>
+                <div class="bold-text">{{ student.first_name }} {{ student.last_name }}</div>
+                <div class="small-text">{{ student.student_id }}</div>
+            </td>
+            <td>{{ student.gender }}</td>
+            <td>{{ student.year }}</td>
+            <td>{{ student.course_college or '' }}</td>
+            <td>
+                <span class="action-btn">
+                    <a class="action-link-edit" href="edit/{{ student.id }}">Edit</a>
+                    <form method="post" action="/student/delete/{{ student.id }}">
+                        <button type="button" class="action-link-delete" onclick="confirmDeleteStudent('{{ student.id }}')">Delete</button>
+                    </form>
+                </span>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<div class="pagination-container" style="margin-top: 20px; text-align: center;">
+  {% if total_pages > 0 %}
+      {% if page > 1 %}
+          <a href="{{ url_for('student.student_home', page=page-1) }}">&#8592; Previous</a>
+      {% else %}
+          <span style="color: grey;">&#8592; Previous</span>
+      {% endif %}
+
+      &nbsp; | &nbsp;
+      <span class="page-info">Page {{ page }} of {{ total_pages }}</span>
+      &nbsp; | &nbsp;
+
+      {% if page < total_pages %}
+          <a href="{{ url_for('student.student_home', page=page+1) }}">Next &#8594;</a>
+      {% else %}
+          <span style="color: grey;">Next &#8594;</span>
+      {% endif %}
+  {% else %}
+      <span>No students</span>
+  {% endif %}
 </div>
 {% endblock %}

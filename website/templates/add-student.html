@@ -1,164 +1,99 @@
-{% extends "base.html" %} {% block title %}SSIS{% endblock %} {% block content
-%}
+{% extends "base.html" %}
+{% block title %}Add Student - SSIS{% endblock %}
+{% block content %}
 <h1 align="center">Students</h1>
 <a href="/student"><button>Back</button></a>
-<form
-	method="POST"
-	action="/student/add"
-	enctype="multipart/form-data"
->
-	<h3 class="heading-add">Add Student</h3>
-	<div class="form-group">
-		<div class="photo-container-add">
-			<img
-				src="../static/src/default_photo.jpg"
-				alt="Student Photo"
-				id="profile-pic"
-				class="student-photo"
-			/>
-		</div>
-		<label for="student_photo">Photo</label>
-		<input
-			type="file"
-			name="student_photo"
-			class="form-control"
-			id="student_photo"
-			autocomplete="off"
-			onchange="checkFileSize(); checkFileFormat()"
-		/>
-	</div>
-	<div class="form-group">
-		<label for="id">ID Number</label>
-		<input
-			type="text"
-			class="form-control"
-			id="student_id"
-			name="student_id"
-			pattern="20\d{2}-\d{4}"
-			placeholder="Enter ID number. Use the format 20xx-xxxx"
-		/>
-	</div>
-	<div class="form-group">
-		<label for="firstName">First Name</label>
-		<input
-			type="text"
-			class="form-control"
-			id="firstName"
-			name="firstName"
-			placeholder="Enter First Name"
-		/>
-	</div>
-	<div class="form-group">
-		<label for="lastName">Last Name</label>
-		<input
-			type="text"
-			class="form-control"
-			id="lastName"
-			name="lastName"
-			placeholder="Enter Last Name"
-		/>
-	</div>
-	<div class="form-group">
-		<label for="gender">Gender</label>
-		<select
-			class="form-control"
-			id="gender"
-			name="gender"
-		>
-			<option
-				value=""
-				disabled
-				selected
-			>
-				--Select Gender--
-			</option>
-			<option value="Male">Male</option>
-			<option value="Female">Female</option>
-		</select>
-	</div>
-	<div class="form-group">
-		<label for="year">Year Level</label>
-		<select
-			class="form-control"
-			id="year"
-			name="year"
-		>
-			<option
-				value=""
-				disabled
-				selected
-			>
-				--Select Year Level--
-			</option>
-			<option value="1">1</option>
-			<option value="2">2</option>
-			<option value="3">3</option>
-			<option value="4">4</option>
-		</select>
-	</div>
-	<div class="form-group">
-		<label for="course">Course</label>
-		<select
-			class="form-control"
-			id="course"
-			name="course"
-		>
-			<option
-				value=""
-				disabled
-				selected
-			>
-				--Select Course--
-			</option>
-			{% for course in courses %}
-			<option value="{{ course.id }}">{{ course.course_name }}</option>
-			{% endfor %}
-		</select>
-	</div>
-	<br />
-	<button
-		type="submit"
-		id="file-submit"
-		class="btn btn-info"
-		onclick="checkFileSize()"
-	>
-		Submit
-	</button>
+<form method="POST" action="/student/add" enctype="multipart/form-data" autocomplete="off">
+    <h3 class="heading-add">Add Student</h3>
+
+    <div class="form-group">
+        <div class="photo-container-add">
+            <img src="../static/src/default_photo.jpg" alt="Student Photo" id="profile-pic" class="student-photo" />
+        </div>
+        <label for="student_photo">Photo</label>
+        <input type="file" name="student_photo" class="form-control" id="student_photo" autocomplete="off" onchange="handleFileSelect();" />
+    </div>
+
+    <div class="form-group">
+        <label for="student_id">ID Number</label>
+        <input type="text" class="form-control" id="student_id" name="student_id"
+            placeholder="Enter ID number (e.g., 2020-1234)" 
+            pattern="2020-\d{4}" 
+            title="ID must start with 2020- followed by 4 digits" 
+            required />
+    </div>
+
+    <div class="form-group">
+        <label for="firstName">First Name</label>
+        <input type="text" class="form-control" id="firstName" name="firstName" placeholder="Enter First Name" autocomplete="off" />
+    </div>
+
+    <div class="form-group">
+        <label for="lastName">Last Name</label>
+        <input type="text" class="form-control" id="lastName" name="lastName" placeholder="Enter Last Name" autocomplete="off" />
+    </div>
+
+    <div class="form-group">
+        <label for="gender">Gender</label>
+        <select class="form-control" id="gender" name="gender">
+            <option value="" disabled selected>--Select Gender--</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="year">Year Level</label>
+        <select class="form-control" id="year" name="year">
+            <option value="" disabled selected>--Select Year Level--</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="course_college">Course and College</label>
+        <select class="form-control" name="course_college" id="course_college" required>
+            <option value="">-- Select Course and College --</option>
+            {% for c in courses %}
+                {% set selected = '' %}
+                {% if student and student.course_id == c.id %}
+                    {% set selected = 'selected' %}
+                {% endif %}
+                <option value="{{ c.id }}" {{ selected }}>
+                    {{ c.course_code }} ({{ c.college_name }})
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <br />
+    <button type="submit" class="btn btn-info">Submit</button>
 </form>
+
 <script>
-	let profilePic = document.getElementById("profile-pic");
-	let inputFile = document.getElementById("student_photo");
+let profilePic = document.getElementById("profile-pic");
+let inputFile = document.getElementById("student_photo");
 
-	function handleFileSelect() {
-		profilePic.src = URL.createObjectURL(inputFile.files[0]);
-		checkFileSize();
-	}
+function handleFileSelect() {
+    if(inputFile.files.length > 0){
+        profilePic.src = URL.createObjectURL(inputFile.files[0]);
+        checkFileSize();
+    }
+}
 
-	function checkFileSize() {
-		var maxSize = 20 * 1024 * 1024; // 1 MB (you can adjust this value)
-
-		if (inputFile.files.length > 0) {
-			var fileSize = inputFile.files[0].size;
-
-			if (fileSize > maxSize) {
-				alert("File size exceeds the limit of 1 MB.");
-				inputFile.value = ""; // Clear the file input
-				profilePic.src = "../static/src/default_photo.jpg"; // Reset the image source to default
-			}
-		}
-	}
-
-	function checkFileFormat() {
-		if (inputFile.files.length > 0) {
-			var allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
-			var fileType = inputFile.files[0].type;
-
-			if (!allowedTypes.includes(fileType)) {
-				alert("Invalid file type. Please upload a .jpg or .png image.");
-				inputFile.value = ""; // Clear the file input
-				profilePic.src = "../static/src/default_photo.jpg"; // Reset the image source to default
-			}
-		}
-	}
+function checkFileSize() {
+    var maxSize = 1 * 1024 * 1024; // 1MB
+    if (inputFile.files.length > 0) {
+        var fileSize = inputFile.files[0].size;
+        if (fileSize > maxSize) {
+            alert("File size exceeds 1 MB.");
+            inputFile.value = "";
+            profilePic.src = "../static/src/default_photo.jpg";
+        }
+    }
+}
 </script>
 {% endblock %}

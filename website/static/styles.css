@@ -214,3 +214,16 @@ button:hover {
 .action-link-edit:hover {
 	color: #0088a9;
 }
+
+/* Style for the pagination container */
+.pagination-container {
+  margin-top: 20px;
+  text-align: center;
+}
+
+/* Style for the "Page X of Y" text to be white */
+.pagination-container .page-info {
+  color: #ecf0f1; /* white-ish */
+  font-weight: 500;
+  font-size: 16px;
+}

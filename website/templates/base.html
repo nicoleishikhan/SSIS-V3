@@ -94,40 +94,30 @@
 		></script>
 		<script>
 			function confirmDeleteCollege(collegeId) {
-				if (
-					confirm(
-						"Are you sure you want to delete this college? All courses and students in this college will also be deleted."
-					)
-				) {
-					document
-						.querySelector(`form[action="/college/delete/${collegeId}"]`)
-						.submit();
+				if (confirm(
+					"Are you sure you want to delete this college?\nAll courses and students will remain, but students will have no assigned college."
+				)) {
+					document.querySelector(`form[action="/college/delete/${collegeId}"]`).submit();
 				} else {
 					return false;
 				}
 			}
-		</script>
-		<script>
+
 			function confirmDeleteCourse(courseId) {
-				if (
-					confirm(
-						"Are you sure you want to delete this course? All students in this course will also be deleted."
-					)
-				) {
-					document
-						.querySelector(`form[action="/course/delete/${courseId}"]`)
-						.submit();
+				if (confirm(
+					"Are you sure you want to delete this course?\nStudents will remain, but they will have no assigned course."
+				)) {
+					document.querySelector(`form[action="/course/delete/${courseId}"]`).submit();
 				} else {
 					return false;
 				}
 			}
-		</script>
-		<script>
+
 			function confirmDeleteStudent(studentId) {
-				if (confirm("Are you sure you want to delete this student?")) {
-					document
-						.querySelector(`form[action="/student/delete/${studentId}"]`)
-						.submit();
+				if (confirm(
+					"Are you sure you want to delete this student?"
+				)) {
+					document.querySelector(`form[action="/student/delete/${studentId}"]`).submit();
 				} else {
 					return false;
 				}
